@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import useDebounce from "./hooks/useDebounce";
 
 const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
 const CLIENT_SECRET = import.meta.env.VITE_CLIENT_SECRET;
@@ -48,10 +49,14 @@ function App() {
       .then((data) => setAccessToken(data.access_token));
   }, []);
 
+  const debouncedSearch = useDebounce(search, 400);
+
   useEffect(() => {
-    if (search) {
+    if (debouncedSearch) {
       fetch(
-        "https://api.spotify.com/v1/search?q=" + search + "&type=track&limit=3",
+        "https://api.spotify.com/v1/search?q=" +
+          debouncedSearch +
+          "&type=track&limit=3",
         {
           method: "GET",
           headers: {
@@ -63,7 +68,7 @@ function App() {
         .then((res) => res.json())
         .then((data) => setResults(data.tracks.items));
     }
-  }, [search]);
+  }, [debouncedSearch]);
 
   async function selectTrack(id) {
     await fetch("https://api.spotify.com/v1/tracks/" + id + "?market=GB", {
